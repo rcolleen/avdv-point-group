@@ -15,11 +15,10 @@ public:
     Eigen::Matrix3d cart_matrix;
     Eigen::Vector3d translation;
 
-    Symmetry_Operation(Eigen::Matrix3d input_matrix, Eigen::Vector3d input_translation)
-    {
-        Eigen::Matrix3d cart_matrix = input_matrix;
-        Eigen::Vector3d translation = input_translation;
-    }
+    Symmetry_Operation(Eigen::Matrix3d input_matrix, Eigen::Vector3d input_translation):
+        cart_matrix (input_matrix),
+        translation (input_translation)
+    {}
 };
 
 bool compare_diff_to_prec(Eigen::Vector3d difference)
@@ -27,7 +26,7 @@ bool compare_diff_to_prec(Eigen::Vector3d difference)
     int sig_diff = 0;
     for (int i = 0; i < 3; i++)
     {
-        if (abs(difference(1)) > PREC)
+        if (abs(difference(i)) > PREC)
         {
             sig_diff++;
         }
@@ -98,10 +97,9 @@ std::vector<Eigen::Vector3d> eigenvectors_with_positive_unit_eigenvalues(const E
 
     for (int i = 0; i < 3; i++)
     {
-        auto eigenval = eigenvals(i);
+                auto eigenval = eigenvals(i);
         if (almost_equal(eigenval.real(), 1))
         {
-            std::cout << eigenvectors.col(i) << std::endl;
             Eigen::Vector3d real_eigenvector = eigenvectors.col(i).real();
             output_eigen_vectors.push_back(real_eigenvector);
         }
@@ -127,8 +125,6 @@ std::string check_op_type(const Symmetry_Operation sym_op, const Eigen::Matrix3d
         return type;
     }
     std::vector<Eigen::Vector3d> eigen_vectors = eigenvectors_with_positive_unit_eigenvalues(sym_op.cart_matrix);
-    /* std::cout << eigen_vectors << std::endl; */
-    /* std::cout << eigen_vectors.cols() << std::endl; */
     if (eigen_vectors.size() == 2)
     {
         if (has_translation(project_translation_onto_vectors(eigen_vectors, sym_op.translation), lattice))
@@ -180,10 +176,13 @@ int main()
     // for now, hard coding example sym_ops
 
     Eigen::Vector3d some_translation;
-    some_translation << 0.0, 0.0, 0.5;
+    some_translation << 0.0, 0.0, 1;
     Eigen::Matrix3d ymirror;
-    ymirror << 1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0;
+    ymirror(0,0)=1; ymirror(0,1)=0; ymirror(0,1)=0;
+    ymirror(1,0)=0; ymirror(1,1)=-1; ymirror(1,2)=0; 
+    ymirror(2,0)=0; ymirror(2,1)=0;  ymirror(2,2)=1;
     ::Symmetry_Operation sym_op(ymirror, some_translation);
+
 
     Eigen::Matrix3d lattice;
     lattice << 3.5, 0.0, 0.0, 0.0, 3.5, 0.0, 0.0, 0.0, 4.0;
